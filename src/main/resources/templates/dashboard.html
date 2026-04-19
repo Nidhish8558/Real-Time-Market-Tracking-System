@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Live Crypto Tracker</title>
+
+    <!-- SockJS + STOMP -->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: white;
+            text-align: center;
+        }
+
+        h1 {
+            margin-top: 30px;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 50px;
+        }
+
+        .card {
+            width: 180px;
+            padding: 20px;
+            border-radius: 12px;
+            background: #1e293b;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+            transition: transform 0.2s ease;
+        }
+
+        .card:hover {
+            transform: scale(1.05);
+        }
+
+        .symbol {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .price {
+            font-size: 24px;
+            font-weight: bold;
+            color: #00ffcc;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>🚀 Live Crypto Prices</h1>
+
+<div class="container">
+
+    <div class="card">
+        <div class="symbol">BITCOIN</div>
+        <div id="btcusdt" class="price">--</div>
+    </div>
+
+    <div class="card">
+        <div class="symbol">ETHERIUM</div>
+        <div id="ethusdt" class="price">--</div>
+    </div>
+
+    <div class="card">
+        <div class="symbol">SOLANA</div>
+        <div id="solusdt" class="price">--</div>
+    </div>
+
+</div>
+
+<h1>🚀 Live US Stock prices</h1>
+
+<div class="container">
+
+    <div class="card">
+        <div class="symbol">APPLE</div>
+        <div id="AAPL" class="price">--</div>
+    </div>
+
+    <div class="card">
+        <div class="symbol">TESLA</div>
+        <div id="TSLA" class="price">--</div>
+    </div>
+
+    <div class="card">
+        <div class="symbol">NVIDEA</div>
+        <div id="NVDA" class="price">--</div>
+    </div>
+
+    <div class="card">
+        <div class="symbol">AMAZON</div>
+        <div id="AMZN" class="price">--</div>
+    </div>
+
+</div>
+
+<script>
+    let socket = new SockJS('http://localhost:8080/crypto');
+    let stomp = Stomp.over(socket);
+
+    stomp.connect({}, function () {
+
+        console.log("✅ Connected");
+
+        stomp.subscribe('/topic/Market', function (msg) {
+
+            let data = JSON.parse(msg.body);
+
+            let symbol = data.symbol.toLowerCase(); // btcusdt, ethusdt...
+
+            let element = document.getElementById(symbol);
+
+            if (element) {
+
+                let oldPrice = element.innerText;
+
+                // price color logic
+                if (oldPrice !== "--") {
+                    if (parseFloat(data.price) > parseFloat(oldPrice)) {
+                        element.style.color = "lime";
+                    } else {
+                        element.style.color = "red";
+                    }
+                }
+
+                element.innerText = data.price;
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
